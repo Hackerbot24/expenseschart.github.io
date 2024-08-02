@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" sizes="32x32" href="./images/favicon-32x32.png">
+    <title>Expenses Chart</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&display=swap');
+
+        :root {
+            --primary-color: #ec775f;
+            --secondary-color: #76b5bc;
+            --background-color: #f8e9dd;
+            --text-color: #382314;
+            --card-background: #fffaf5;
+            --shadow-light: #ffffff;
+            --shadow-dark: #d6d6d6;
+            --tooltip-background: #382314;
+            --tooltip-text: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: var(--background-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        .container {
+            max-width: 540px;
+            width: 100%;
+        }
+
+        .balance-card {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            box-shadow: 5px 5px 15px var(--shadow-dark), -5px -5px 15px var(--shadow-light);
+        }
+
+        .balance-info h2 {
+            font-size: 0.9em;
+            font-weight: 400;
+            margin-bottom: 5px;
+        }
+
+        .balance-info p {
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+
+        .chart-card {
+            background-color: var(--card-background);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 5px 5px 15px var(--shadow-dark), -5px -5px 15px var(--shadow-light);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .chart-title {
+            color: var(--text-color);
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+
+        .chart {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            height: 200px;
+            margin-bottom: 20px;
+        }
+
+        .bar-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 12%;
+            height: 100%;
+        }
+
+        .bar {
+            width: 100%;
+            background-color: var(--primary-color);
+            border-radius: 5px 5px 0 0;
+            transition: height 0.5s ease, opacity 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .bar:hover {
+            opacity: 0.8;
+        }
+
+        .bar.current {
+            background-color: var(--secondary-color);
+        }
+
+        .bar-label {
+            margin-top: 10px;
+            color: var(--text-color);
+            font-size: 0.9em;
+        }
+
+        .tooltip {
+            position: absolute;
+            background-color: var(--tooltip-background);
+            color: var(--tooltip-text);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .total {
+            border-top: 2px solid var(--background-color);
+            padding-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .total-label {
+            color: var(--text-color);
+            font-size: 0.9em;
+        }
+
+        .total-amount {
+            color: var(--text-color);
+            font-size: 2em;
+            font-weight: 700;
+        }
+
+        .percentage {
+            text-align: right;
+        }
+
+        .percentage-value {
+            color: var(--text-color);
+            font-weight: 700;
+        }
+
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            padding: 10px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-size: 14px;
+        }
+
+        #darkModeToggle {
+            width: 50px;
+            height: 30px;
+            background: var(--text-color);
+            border-radius: 15px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        #darkModeToggle::after {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: transform 0.3s ease;
+        }
+
+        #darkModeToggle.active::after {
+            transform: translateX(20px);
+        }
+
+        body.dark-mode {
+            --background-color: #1e1e1e;
+            --card-background: #2d2d2d;
+            --text-color: #ffffff;
+            --shadow-light: #3a3a3a;
+            --shadow-dark: #161616;
+            --tooltip-background: #ffffff;
+            --tooltip-text: #382314;
+        }
+
+        @media (max-width: 375px) {
+            .container {
+                width: 90%;
+            }
+
+            .chart-card {
+                padding: 20px;
+            }
+
+            .bar-container {
+                width: 10%;
+            }
+
+            .bar-label {
+                font-size: 0.8em;
+            }
+
+            .total-amount {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="balance-card">
+            <div class="balance-info">
+                <svg width="72" height="48" viewBox="0 0 72 48" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><circle fill="#382314" cx="48" cy="24" r="24"/><circle stroke="#FFF" stroke-width="2" cx="24" cy="24" r="23"/></g></svg>
+                <h2>My balance</h2>
+                <p>$921.48</p>
+            </div>
+            <div id="darkModeToggle"></div>
+        </div>
+        <div class="chart-card">
+            <h2 class="chart-title">Spending - Last 7 days</h2>
+            <div class="chart" id="chart"></div>
+            <div class="total">
+                <div>
+                    <p class="total-label">Total this month</p>
+                    <p class="total-amount">$478.33</p>
+                </div>
+                <div class="percentage">
+                    <p class="percentage-value">+2.4%</p>
+                    <p class="total-label">from last month</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Expenses Chart. All rights reserved.</p>
+        Challenge by <a href="https://www.frontendmentor.io?ref=challenge" target="_blank">Frontend Mentor</a>. 
+        Coded by <a href="https://github.com/Hackerbot24">Hackerbot24</a>.
+    </footer>
+
+    <script>
+        const spendingData = [
+            {"day": "mon", "amount": 17.45},
+            {"day": "tue", "amount": 34.91},
+            {"day": "wed", "amount": 52.36},
+            {"day": "thu", "amount": 31.07},
+            {"day": "fri", "amount": 23.39},
+            {"day": "sat", "amount": 43.28},
+            {"day": "sun", "amount": 25.48}
+        ];
+
+        function generateChart(data) {
+            const chart = document.getElementById('chart');
+            const maxAmount = Math.max(...data.map(day => day.amount));
+            const currentDay = new Date().toLocaleString('en-us', {weekday: 'short'}).toLowerCase();
+
+            data.forEach(day => {
+                const barContainer = document.createElement('div');
+                barContainer.className = 'bar-container';
+
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                if (day.day === currentDay) {
+                    bar.classList.add('current');
+                }
+                const height = (day.amount / maxAmount) * 100;
+                bar.style.height = `${height}%`;
+
+                const tooltip = document.createElement('div');
+                tooltip.className = 'tooltip';
+                tooltip.textContent = `$${day.amount}`;
+                bar.appendChild(tooltip);
+
+                const label = document.createElement('div');
+                label.className = 'bar-label';
+                label.textContent = day.day;
+
+                barContainer.appendChild(bar);
+                barContainer.appendChild(label);
+                chart.appendChild(barContainer);
+
+                bar.addEventListener('mouseenter', () => {
+                    tooltip.style.opacity = '1';
+                });
+
+                bar.addEventListener('mouseleave', () => {
+                    tooltip.style.opacity = '0';
+                });
+            });
+        }
+
+        function initDarkModeToggle() {
+            const toggle = document.getElementById('darkModeToggle');
+            const body = document.body;
+
+            toggle.addEventListener('click', () => {
+                body.classList.toggle('dark-mode');
+                toggle.classList.toggle('active');
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            generateChart(spendingData);
+            initDarkModeToggle();
+        });
+    </script>
+</body>
+</html>
